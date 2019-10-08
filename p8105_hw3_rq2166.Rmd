@@ -1,7 +1,7 @@
 ---
 title: "p8105_hw3_rq2166"
 author: "Ruoyuan Qian"
-date: "10/6/2019"
+date: "10/8/2019"
 output: github_document
 ---
 
@@ -27,9 +27,7 @@ library(patchwork)
 # Problem 1
 
 ## a)
-**Description**
-
-`instacart`
+**Description of `instacart`**
 
 `The number of aisle and the most items ordered from the aisles: `
 
@@ -195,55 +193,6 @@ df =  brfss %>%
   filter( locationabbr=="NY") %>% 
   select(year,locationdesc,data_value,response)
 
-
-plot_2006_1 = df %>% 
-  filter(year == 2006) %>% 
-  ggplot(aes(x =factor(locationdesc) ,y = data_value ,fill = response))+ geom_bar(stat = 'identity', position = 'dodge') + 
-   coord_flip()+
-labs(
-       x    = "Location",
-       y    = "data_value",
-       title = "Plot 2  Distribution of NY State in 2006"
-       )
-
-plot_2006_2 = df %>% 
-    filter(year == 2006) %>% 
-ggplot(aes(x =factor(locationdesc) ,y = data_value ,fill = response))+ 
-  geom_bar(stat = 'identity', position = 'stack') +
-  guides(fill = guide_legend(reverse= T))+ 
-   coord_flip()+
-labs(
-       x    = "Location",
-       y    = "data_value",
-       title = "Plot 2  Distribution of NY State in 2006"
-       )
-
-
-plot_2010_1 = df %>% 
-  filter(year == 2010) %>% 
-  ggplot(aes(x =factor(locationdesc) ,y = data_value ,fill = response))+ geom_bar(stat = 'identity', position = 'dodge') + 
-   coord_flip()+
-labs(
-       x    = "Location",
-       y    = "data_value",
-       title = "Plot 3  Distribution of NY State in 2010"
-       )
-
-plot_2010_2 = df %>% 
-    filter(year == 2010) %>% 
-ggplot(aes(x =factor(locationdesc) ,y = data_value ,fill = response))+ 
-  geom_bar(stat = 'identity', position = 'stack') +
-  guides(fill = guide_legend(reverse= T))+ 
-   coord_flip()+
-labs(
-       x    = "Location",
-       y    = "data_value",
-       title = "Plot 3  Distribution of NY State in 2010"
-       )
-
-plot_2006_1/plot_2010_1
-plot_2006_2/plot_2010_2
-
 ```
 
 ```{r}
@@ -283,8 +232,13 @@ plot_2006_3/plot_2010_3
 
 
 ```
+According to the Plot 3,
 
-According to Plot 3 and 4, the distributions of `Poor` and `Excellent` response in 2006 were similar to the associated response in 2010, respectively. And they almost remained in the same position among 2006 and 2010. However, `Fair` became more dispersed compared to 2006, `Good` and `Very good` were in opposite positions in the 2006 and 2010 distributions, `Good` was less dispersed compared to 2006.
+
+According to Plot 3 and 4, the distributions of `Poor` and `Excellent` in 2006 were similar to the associated response in 2010, respectively. And they almost remained in the same position among 2006 and 2010. 
+However, `Fair` became more dispersed compared to 2006, `Good` and `Very good` were in opposite positions in the 2006 and 2010 distributions, `Good` was less dispersed compared to 2006.
+Moreover, there was a trend in 2010 by number from big to small: `Very good`, `Good`, `Excellent`, `Fair` and then `Poor`.
+
 
 # Problem 3
 
@@ -311,13 +265,19 @@ Tidy data
     activity_1:activity_1440,
     names_to = "activity",
     names_prefix = "activity_" ) %>% 
-  mutate(
-    activity= as.numeric(activity)
-  )
-
-
+  arrange(week,day_id)
 ```
+**Description**
 
+`accel_data`
+
+The number of observation in `accel_data` is ``r accel_data%>%pull(week)%>%length()``. And there are ``r accel_data%>%length()`` variables in it.
+
+The variables in `accel_data` include information of time, including the variables of week(`week`, `day_id`, `day`, `weekday_weekend`) and information of activity(`activity`, `value`).
+
+## b)
+
+Table of total activity over the day
 ```{r}
 total_activity = 
  accel_data %>% 
@@ -325,63 +285,47 @@ total_activity =
   mutate(
     total = sum(value)
   ) %>% 
-  select(week,day_id,total) %>% 
+  select(week,day,total) %>% 
   distinct() 
 
 total_activity %>% 
   knitr::kable(caption = "Table 3  Total activity for each day",format = "html")
 
 ```
+
+Plot of total activity over the day
 ```{r}
-as.data.frame(total_activity)
+  
 total_activity %>%
   ungroup(week) %>% 
-  mutate(
-    week= factor(week)
-  ) %>% 
   ggplot(aes(x=day_id,y=total,color=week))+
-    viridis::scale_color_viridis(
-    discrete = TRUE
-  )+
   geom_line()+
 labs(
        x    = "day",
        y    = "total activity each day",
        title = "Plot 5 Total activity over the day "
        )
-  
+
 ```
+
+It is hard to say the trend from the long table, so I drew an associated plot with `day` for `x axis` and `total activity` for `y axis`. There is a increasing trend among the `first` and `second` week and than a decreasing trend in `third` week. Besides, there are two equal minimums, which are ``r total_activity %>% ungroup(week,day_id) %>% filter(total == min(total)) %>% distinct(total) %>% pull(total)``, on the ``r total_activity %>% ungroup(week,day_id) %>% filter(total == min(total)) %>% pull(day)``,week ``r total_activity %>% ungroup(week,day_id) %>% filter(total == min(total)) %>% pull(week)``, respectively, and the maxium is  ``r total_activity %>% ungroup(week,day_id) %>% filter(total == max(total)) %>% pull(total)``, it is on the ``r total_activity %>% ungroup(week,day_id) %>% filter(total == max(total)) %>% pull(day)``, week ``r total_activity %>% ungroup(week,day_id) %>% filter(total == max(total)) %>% pull(week)``.
 
 ```{r}
  accel_data %>% 
   mutate(day_id=as.character(day_id)) %>% 
   ggplot(aes(x= activity,y=value,
              color=day,group=day_id))+
-  geom_smooth(se=F)+
+  geom_line(alpha = .7)+
   viridis::scale_color_viridis(
     discrete = TRUE
   )+
 labs(
        x    = "Activity across 24 hours",
        y    = "Value",
-       title = "Plot 4  24-hour activity time courses for each day "
+       title = "Plot 6  24-hour activity time courses for each day "
        )
-
- accel_data %>% 
-  mutate(day_id=as.character(day_id)) %>% 
-  ggplot(aes(x= activity,y=value,
-             color=day,group=day_id))+
-  geom_line()+
-  viridis::scale_color_viridis(
-    discrete = TRUE
-  )+
-labs(
-       x    = "Activity across 24 hours",
-       y    = "Value",
-       title = "Plot 4  24-hour activity time courses for each day "
-       )
-
-
 
 ```
 
+According to the Plot 6, there is an sharply drop among `“activity counts” ` in the morning in all days, and there are about three peaks in the plot, the first one appeared early in the morning contributed by Thursdays and Fridays, the second one appeared at noon, contributed by Thursdays and Sundays and the third peak appeared at the nightfall, contributed by Sundays. 
+Moreover, the `“activity counts” `on Mondays were flater than others. And the `“activity counts” `on Thursday and Sundays were more fluctuating than others.
