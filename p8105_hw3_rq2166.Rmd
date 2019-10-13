@@ -37,7 +37,20 @@ The number of observation in `instacart` is ``r instacart%>%pull(aisle)%>%length
 
 The key variables in `instacart` include information on order, including the order sequence number(`order_number`) and the time of the order(`order_dow`, `order_hour_of_day`), product(`product_name`), aisle(`aisle`) and department(`department`).
 
+**`For example`**
 
+As for 
+```{r ,echo = FALSE}
+instacart %>% 
+  select(user_id,order_number,
+         order_dow,order_hour_of_day,
+         product_name,aisle,
+         department) %>% 
+  head(1) %>% 
+  knitr::kable(format = "html") 
+```
+
+The user's id is No.``r instacart %>% select(user_id) %>% head(1) %>% pull()``, his or her ``r instacart %>% select(order_number) %>% head(1) %>% pull()``th ordering product is ``r instacart %>% select(product_name) %>% head(1) %>% pull()``, the product belongs to ``r instacart %>% select(aisle) %>% head(1) %>% pull()`` aisle, ``r instacart %>% select(department) %>% head(1) %>% pull()`` department, the time of the order is ``r instacart %>% select(order_hour_of_day) %>% head(1) %>% pull()``o'clock, the ``r instacart %>% select(order_dow) %>% head(1) %>% pull()``th day in a week.
 
 ## b)
 
@@ -58,36 +71,15 @@ labs(
   
 ```
 
-There are ``r instacart %>% group_by(aisle) %>% summarize(n = n()) %>% filter(n > 10000) %>% pull(aisle) %>% length()`` aisles with the number of items ordered larger than 10000, ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>% filter(n == max(n)) %>% pull(aisle) `` , ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>%  mutate(rank=rank(-n)) %>% filter(rank == 2) %>% pull(aisle) `` and ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>%  mutate(rank=rank(-n)) %>% filter(rank == 3) %>% pull(aisle) `` are the three most popular aisles over all. The average number of items ordered in aisles is about``r round((instacart %>% group_by(aisle) %>%summarize(n = n()) %>% filter(n >= 10000)  %>% pull(n) %>% mean))``.
+There are ``r instacart %>% group_by(aisle) %>% summarize(n = n()) %>% filter(n > 10000) %>% pull(aisle) %>% length()`` aisles with the number of items ordered larger than 10000, ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>% filter(n == max(n)) %>% pull(aisle) `` , ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>%  mutate(rank=rank(-n)) %>% filter(rank == 2) %>% pull(aisle) `` and ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>%  mutate(rank=rank(-n)) %>% filter(rank == 3) %>% pull(aisle) `` are the three most popular aisles over all, they are ordered ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>% filter(n == max(n)) %>% pull(n)``, ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>%  mutate(rank=rank(-n)) %>% filter(rank == 2) %>% pull(n)`` and ``r instacart %>% group_by(aisle) %>%summarize(n = n()) %>%  mutate(rank=rank(-n)) %>% filter(rank == 3) %>% pull(n) ``times, respectively. The average number of items ordered in aisles in the plot is about``r round((instacart %>% group_by(aisle) %>%summarize(n = n()) %>% filter(n >= 10000)  %>% pull(n) %>% mean))``.
 
 ## c)
 
 Make a table showing the three most popular items in “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.
-```{r}
-
-instacart %>% 
-  group_by(aisle,product_name) %>% 
-  filter(aisle %in% c("baking ingredients", "dog food care",
-                      "packaged vegetables fruits")
-          ) %>% 
-  summarize( "number_of_times" = n()) %>% 
-  mutate(rank=rank(-number_of_times)) %>% 
-  filter(rank %in% c(1,2,3)) %>% 
-  ungroup(aisle,product_name) %>% 
-  select(-aisle,-rank) %>% 
-  pivot_wider(
-    names_from  = product_name, 
-    values_from = number_of_times
-  ) %>% 
-  knitr::kable(caption = "Table 1  The three most popular items in baking ingredients, dog food care, and packaged vegetables fruits",format = "html") 
-#add_header_abov(c("baking ingredients" = 3,"dog food care" = 3, "packaged vegetables fruits" = 3))
-
-```
-
 
 ```{r}
 Three_most_popular = 
-instacart %>% 
+ instacart %>% 
   group_by(aisle,product_name) %>% 
   filter(aisle %in% c("baking ingredients", "dog food care",
                       "packaged vegetables fruits")
@@ -97,12 +89,15 @@ instacart %>%
   filter(rank %in% c(1,2,3)) %>% 
   arrange(aisle,rank) 
 
-Three_most_popular %>% 
-  knitr::kable(caption = "Table 1  The three most popular items in baking ingredients, dog food care, and packaged vegetables fruits",format = "html") 
+ Three_most_popular %>% 
+  knitr::kable(caption = "Table 1  The three most popular items in baking ingredients, dog food care, and packaged vegetables fruits",
+               format = "html") 
 
 ```
 According to the Table 1, we can see the numbers of items ordered from `packaged vegetables fruits` are much larger than others, the most popular item in it is ``r Three_most_popular %>% filter(aisle == "packaged vegetables fruits" & rank==1) %>% pull(aisle)`` and its number of ordered times is ``r Three_most_popular %>% filter(aisle == "packaged vegetables fruits" & rank==1) %>% pull(number_of_times)``. 
 The numbers of items ordered from `dog food care` are the least one, the most popular item in it is ``r Three_most_popular %>% filter(aisle == "dog food care" & rank==1) %>% pull(aisle)`` and its number of ordered times is ``r Three_most_popular %>% filter(aisle == "dog food care" & rank==1) %>% pull(number_of_times)``.
+
+## d)
 
 ```{r}
 mean_hour = 
@@ -151,12 +146,18 @@ brfss_smart2010 %>%
            c("Excellent","Very good",
              "Good","Fair","Poor")) %>% 
   mutate(response=factor(response, ordered=T,
-          level=c("Poor","Fair","Good","Very good","Excellent"
-             ))) 
+          level=c("Poor","Fair","Good",
+                  "Very good","Excellent"))) 
 ```
 ## a)
 
-``r brfss%>% filter(year==2002) %>% group_by(locationabbr) %>% summarize(n = n()) %>%filter(n  >= 7) %>% pull(locationabbr) %>% length()`` states( ``r brfss%>% filter(year==2002) %>% group_by(locationabbr) %>% summarize(n = n()) %>%filter(n  >= 7) %>% pull(locationabbr)``) were observed at 7 or more locations in 2002, and ``r brfss%>% filter(year==2010) %>% group_by(locationabbr) %>% summarize(n = n()) %>%filter(n  >= 7) %>% pull(locationabbr) %>% length()`` states (``r brfss%>% filter(year==2010) %>% group_by(locationabbr) %>% summarize(n = n()) %>%filter(n  >= 7) %>% pull(locationabbr)``) were observed at 7 or more locations in 2010.
+**2002**
+
+There are ``r brfss%>%filter(year == 2002)%>%group_by(locationabbr,locationdesc) %>%distinct(locationabbr,locationdesc)%>%group_by(locationabbr) %>%summarize(n = n()) %>%filter(n  >= 7) %>%pull(locationabbr) %>% length()`` states( ``r brfss%>%filter(year == 2002) %>%group_by(locationabbr,locationdesc) %>%distinct(locationabbr,locationdesc)%>%group_by(locationabbr) %>%summarize(n = n()) %>%filter(n  >= 7) %>% pull(locationabbr) ``) observed at 7 or more locations in 2002. 
+
+**2010**
+
+There are ``r brfss%>%filter(year == 2010) %>% group_by(locationabbr,locationdesc) %>%distinct(locationabbr,locationdesc)%>%group_by(locationabbr) %>%summarize(n = n()) %>%filter(n  >= 7) %>%pull(locationabbr) %>%length()`` states (``r brfss%>%filter(year == 2010) %>%group_by(locationabbr,locationdesc) %>%distinct(locationabbr,locationdesc)%>%group_by(locationabbr) %>%summarize(n = n()) %>%filter(n  >= 7) %>% pull(locationabbr) ``) observed at 7 or more locations in 2010.
 
 ## b)
 
@@ -175,7 +176,7 @@ Make `“spaghetti”` plot of average value over time within a state
 data_value_mean %>% 
   ggplot(aes(x=year, y=mean,color=locationabbr,group=locationabbr))+
   geom_line()+
-labs(
+  labs(
        x    = "Year",
        y    = "Average",
        title = "Plot 2  Spaghetti plot of avrage value over time within a state "
@@ -198,7 +199,7 @@ df =  brfss %>%
 ```{r}
 plot_2006_3 =
   df %>% 
-    filter(year == 2006) %>% 
+  filter(year == 2006) %>% 
   group_by(response) %>% 
   mutate(mean_NY = mean(data_value,na.rm=TRUE)) %>% 
   ggplot(aes(x = data_value, fill = response)) + 
@@ -207,14 +208,14 @@ plot_2006_3 =
   viridis::scale_color_viridis(
     discrete = TRUE
   )+
-labs(
+  labs(
        x    = "data_value",
        title = "Plot 3  Distribution of NY State in 2006"
        )
 
 plot_2010_3 =
   df %>% 
-    filter(year == 2010) %>% 
+  filter(year == 2010) %>% 
   group_by(response) %>% 
   mutate(mean_NY = mean(data_value,na.rm=TRUE)) %>% 
   ggplot(aes(x = data_value, fill = response)) + 
@@ -223,7 +224,7 @@ plot_2010_3 =
   viridis::scale_color_viridis(
     discrete = TRUE
   )+
-labs(
+  labs(
        x    = "data_value",
        title = "Plot 4  Distribution of NY State in 2010"
        )
@@ -251,10 +252,10 @@ Tidy data
   drop_na()%>%
   mutate(
     day = factor(day,ordered=T,
-                  level=c("Monday", "Tuesday",
-                          "Wednesday", 
+                  level=c("Sunday","Monday", 
+                          "Tuesday","Wednesday", 
                           "Thursday", "Friday", 
-                          "Saturday", "Sunday")),
+                          "Saturday")),
      weekday_weekend =  case_when(
       as.numeric(day) < 6 ~ "Weekday",
       as.numeric(day) >= 6 ~ "Weekend",
@@ -265,7 +266,11 @@ Tidy data
     activity_1:activity_1440,
     names_to = "activity",
     names_prefix = "activity_" ) %>% 
-  arrange(week,day_id)
+  mutate(
+     activity = factor(activity,
+                       level=c(1:1440),
+                       ordered=T)) %>% 
+  arrange(week,day)
 ```
 **Description**
 
@@ -281,14 +286,15 @@ Table of total activity over the day
 ```{r}
 total_activity = 
  accel_data %>% 
-  group_by(week,day_id) %>% 
+  group_by(week,day) %>% 
   mutate(
-    total = sum(value)
-  ) %>% 
+    total = sum(value)  ) %>% 
   select(week,day,total) %>% 
   distinct() 
 
 total_activity %>% 
+  pivot_wider(names_from = "day",
+              values_from = "total")%>% 
   knitr::kable(caption = "Table 3  Total activity for each day",format = "html")
 
 ```
@@ -297,10 +303,13 @@ Plot of total activity over the day
 ```{r}
   
 total_activity %>%
-  ungroup(week) %>% 
-  ggplot(aes(x=day_id,y=total,color=week))+
+  ungroup(week,day) %>% 
+  mutate(id = c(1:length(total)))%>% 
+  select(week,day,total)   %>%
+  mutate(id = 1:length(day)) %>% 
+  ggplot(aes(x=id,y=total,color=week))+
   geom_line()+
-labs(
+  labs(
        x    = "day",
        y    = "total activity each day",
        title = "Plot 5 Total activity over the day "
@@ -308,18 +317,18 @@ labs(
 
 ```
 
-It is hard to say the trend from the long table, so I drew an associated plot with `day` for `x axis` and `total activity` for `y axis`. There is a increasing trend among the `first` and `second` week and than a decreasing trend in `third` week. Besides, there are two equal minimums, which are ``r total_activity %>% ungroup(week,day_id) %>% filter(total == min(total)) %>% distinct(total) %>% pull(total)``, on the ``r total_activity %>% ungroup(week,day_id) %>% filter(total == min(total)) %>% pull(day)``,week ``r total_activity %>% ungroup(week,day_id) %>% filter(total == min(total)) %>% pull(week)``, respectively, and the maxium is  ``r total_activity %>% ungroup(week,day_id) %>% filter(total == max(total)) %>% pull(total)``, it is on the ``r total_activity %>% ungroup(week,day_id) %>% filter(total == max(total)) %>% pull(day)``, week ``r total_activity %>% ungroup(week,day_id) %>% filter(total == max(total)) %>% pull(week)``.
+It is hard to say the trend from the long table, and since the variable `day_id` does not represent the order in which days were observed, I created a new variable `id` which can represent the oder of the time. And I drew an associated plot with `id` for `x axis` and `total activity` for `y axis`. There is an increasing trend among the `first` and `second` week and then a decreasing trend in `third` and `forth` week. Besides, there are two equal minimums, which are ``r total_activity %>% ungroup(week,day) %>% filter(total == min(total)) %>% distinct(total) %>% pull(total)``, on the ``r total_activity %>% ungroup(week,day) %>% filter(total == min(total)) %>% pull(day)``,week ``r total_activity %>% ungroup(week,day) %>% filter(total == min(total)) %>% pull(week)``, respectively, and the maxium is  ``r total_activity %>% ungroup(week,day) %>% filter(total == max(total)) %>% pull(total)``, it is on the ``r total_activity %>% ungroup(week,day) %>% filter(total == max(total)) %>% pull(day)``, week ``r total_activity %>% ungroup(week,day) %>% filter(total == max(total)) %>% pull(week)``.
 
+## c)
 ```{r}
  accel_data %>% 
-  mutate(day_id=as.character(day_id)) %>% 
   ggplot(aes(x= activity,y=value,
-             color=day,group=day_id))+
+             color=day,group=day))+
   geom_line(alpha = .7)+
   viridis::scale_color_viridis(
-    discrete = TRUE
+   discrete = TRUE
   )+
-labs(
+ labs(
        x    = "Activity across 24 hours",
        y    = "Value",
        title = "Plot 6  24-hour activity time courses for each day "
@@ -327,5 +336,5 @@ labs(
 
 ```
 
-According to the Plot 6, there is an sharply drop among `“activity counts” ` in the morning in all days, and there are about three peaks in the plot, the first one appeared early in the morning contributed by Thursdays and Fridays, the second one appeared at noon, contributed by Thursdays and Sundays and the third peak appeared at the nightfall, contributed by Sundays. 
-Moreover, the `“activity counts” `on Mondays were flater than others. And the `“activity counts” `on Thursday and Sundays were more fluctuating than others.
+According to the Plot 6, there is a sharply drop among `“activity counts”` in the midnight in all days, and there are about four peaks in the plot, the first one appears early in the morning mostly contributed by `Thursdays` and `Sundays`,`Wednesday`, the second one appeared at noon, mostly contributed by `Sundays` and the third peak appeared at the afternoon, contributed by `Saturdays` and `Sundays`, the forth peak appeared in the evening, chontributed by `Fridays`, `Wednesday` and `Saturdays`. 
+Moreover, the `“activity counts” `on `Mondays` and `Tuesdays` were flater than others. And the `“activity counts” `on `Fridays` and `Sundays` were more fluctuating than others.
